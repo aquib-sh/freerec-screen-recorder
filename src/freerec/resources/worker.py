@@ -37,3 +37,8 @@ class Worker():
         local_writer.release()
         self.toggle_stop = False
 
+    def record_audio(self):
+        basename = config.basename
+        format_  = config.video_format
+
+
