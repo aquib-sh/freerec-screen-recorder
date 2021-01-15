@@ -27,17 +27,17 @@ class Recorder:
             self.app.add_label(value=buff, row_=row_, column_=i)
  
     def fill_layout(self):
-        start_pos = (12, 8) # position of start button
+        start_pos = (12, 6) # position of start button
         stop_pos  = (12, 1) # position of stop button
 
         # Add empty rows from top uptil start button row
-        self.fill_empty_rows(0, start_pos[0]-1)
+        self.fill_empty_rows(1, start_pos[0]-1)
 
         # Add empty columns before button position
         self.fill_empty_columns(stop_pos[0], # row
             0,                  # start column
             stop_pos[1],        # end column
-            tabs=3 
+            tabs=2 
             ) 
         self.app.add_button("Stop", stop_pos[0],
             stop_pos[1],
@@ -55,18 +55,38 @@ class Recorder:
             command_=self.record_video
             ) 
         self.audio_box = self.app.add_check_box("Audio", 7,1) 
-        self.audio_box = self.app.add_check_box("Audio", 7,1) 
+        self.app.add_label("    ", 8, 0)
+
+        # Status will tell whether recording is on or stopped
+        self.status = self.app.add_label("", 8, 1)       
+
+        # Create canvas on top for some fancy text
+        self.canvas = self.app.add_canvas(row_=0, column_=0)
+        self.fancy_lbl = self.app.add_label_canvas(
+            self.canvas,
+            "     Now Record Your Screen With Freedom    ") 
+        self.fancy_lbl.config(fg="green2", bg="Black", 
+            font=("Consolas")) 
 
     def show_curr_val(self):
         print(self.audio_box.get())
 
     def record_video(self):
+        self.status.config(text="Started Recording",
+            fg="green2", 
+            bg="black",
+        )
+
         t = threading.Thread(target=self.worker.record_video)
         t.start()
     
     def send_stop_signal(self):
         t = threading.Thread(target=self.worker.give_stop_signal)
         t.start()
+        self.status.config(text="Recording stopped", 
+            fg="red2",
+            bg="black",
+        )
 
     def end(self):
         self.app.start()
