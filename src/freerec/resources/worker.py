@@ -35,6 +35,8 @@ class Worker():
     def record_video(self):
         """ Records video and saves it into a file by getting the names 
             from config file and performing the necessary changes. """
+        if not os.path.exists(config.output_path):
+            os.mkdir(config.output_path)
         basename = os.path.join(config.output_path, config.basename)
         format_  = config.video_format
         # If file with same name already exists then add 'n' to the end of name
