@@ -21,4 +21,7 @@ audio_format   = ".wav"
 output_path    = "Videos"
 resolution     = (GetSystemMetrics(0), GetSystemMetrics(1)) 
 
+if not os.path.exists(output_path):
+    os.mkdir(output_path)
+
 

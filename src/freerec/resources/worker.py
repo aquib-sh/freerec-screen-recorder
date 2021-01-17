@@ -1,3 +1,12 @@
+""" Worker Class
+    Author: Shaikh Aquib
+    
+    As the same suggests, this is the backbone of application.
+    Worker is responsible with everything from initializing audio, video recording process,
+    receiving stop signal then sending it to process, writing audio and video files then
+    deleting them after merging into one by ffmpeg tool.
+""" 
+
 import time
 import sys
 import os
@@ -23,11 +32,16 @@ class Worker():
         if audio_status == 1:
             self.r.toggle_stop = True
 
-    def record_video(self): 
+    def record_video(self):
+        """ Records video and saves it into a file by getting the names 
+            from config file and performing the necessary changes. """
         basename = os.path.join(config.output_path, config.basename)
         format_  = config.video_format
+        # If file with same name already exists then add 'n' to the end of name
+        # achieved using mod_fname method inside util.py
         self.filenames['video'] = util.mod_fname(basename, format_)
 
+        # Initialize the VideoWriter object
         local_writer = cv2.VideoWriter(
             filename = self.filenames['video'],
             fourcc    = self.codec,
@@ -35,6 +49,9 @@ class Worker():
             frameSize = config.resolution,
         )
         while True:
+            # Here, we will take screenshots in a infinite loop and add them to array
+            # It won't stop the process and break out of loop, until self.toggle_stop
+            # is unabled from a seperate thread while calling.
             img = pyautogui.screenshot()    
             frame = np.array(img)
 
@@ -48,7 +65,8 @@ class Worker():
         self.toggle_stop = False
 
     def record_audio(self):
-        """ Records audio saves saves into file. """
+        """ Records video and saves it into a file by getting the names 
+            from config file and performing the necessary changes. """
         basename = os.path.join(config.output_path, config.basename)
         format_  = config.audio_format
        
