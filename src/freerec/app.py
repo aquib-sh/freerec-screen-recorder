@@ -39,7 +39,7 @@ class Recorder:
             stop_pos[1],        # end column
             tabs=2 
             ) 
-        self.app.add_button("Stop", stop_pos[0],
+        self.app.add_button("Stop and Save", stop_pos[0],
             stop_pos[1],
             command_ = self.send_stop_signal
             )       
@@ -52,7 +52,7 @@ class Recorder:
             ) 
         self.app.add_button("Start", start_pos[0], 
             start_pos[1],
-            command_=self.record_video
+            command_=self.start_recording
             ) 
         self.audio_box = self.app.add_check_box("Audio", 7,1) 
         self.app.add_label("    ", 8, 0)
@@ -71,26 +71,35 @@ class Recorder:
     def show_curr_val(self):
         print(self.audio_box.get())
 
-    def record_video(self):
+    def start_recording(self):
         self.status.config(text="Started Recording",
             fg="green2", 
             bg="black",
         )
-
-        t = threading.Thread(target=self.worker.record_video)
-        t.start()
-    
+        # Start audio only if checkbutton is ticked
+        if self.audio_box.get() == 1:
+            global audio_recording
+            audio_recording = threading.Thread(target=self.worker.record_audio)
+            audio_recording.start()        
+        global video_recording
+        video_recording = threading.Thread(target=self.worker.record_video)
+        video_recording.start() 
+ 
     def send_stop_signal(self):
-        t = threading.Thread(target=self.worker.give_stop_signal)
+        t = threading.Thread(target=self.worker.give_stop_signal, args=(self.audio_box.get(),))
         t.start()
-        self.status.config(text="Recording stopped", 
+        self.status.config(text="Recording stopped and saved", 
             fg="red2",
             bg="black",
         )
-
+        if audio_recording.is_alive():
+            audio_recording.join()
+        if not video_recording.is_alive() and not audio_recording.is_alive():
+            merge = threading.Thread(target=self.worker.merge_audio_and_video)
+            merge.start()
+        
     def end(self):
         self.app.start()
-
 
 
 if __name__ == "__main__":
