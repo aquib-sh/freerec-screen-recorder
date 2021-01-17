@@ -1,3 +1,7 @@
+""" Author: Shaikh Aquib
+    FreeRec Screen Recorder
+"""
+
 import sys
 import os
 import threading
@@ -10,23 +14,28 @@ from freerec.resources.user_interface import Application
 
 class Recorder:
     def __init__(self): 
-        self.app = Application(config.window_size)
+        self.app = Application(config.window_size) 
         self.app.set_title(config.app_name) 
         self.app.set_icon(config.app_icon)
         self.root = self.app.get_root()
-        self.audiobox = None 
+        self.audiobox = None    # for tracking value of audio checkbutton 
         self.worker = worker.Worker()
 
     def fill_empty_rows(self, start, end):
+        """ Used to fill empty rows in order to give proper spacing
+            and alignment to gird layout. """
         for i in range(start, end):
             self.app.add_label(value=" ", row_=i, column_=0)
 
     def fill_empty_columns(self, row_, start, end, tabs=1):
+        """ Used to fill empty columns in order to give proper spacing
+            and alignment to gird layout. """
         buff = "    " * tabs  
         for i in range(start, end):
             self.app.add_label(value=buff, row_=row_, column_=i)
  
     def fill_layout(self):
+        """ Fill layout by arranging necassary things. """
         start_pos = (12, 6) # position of start button
         stop_pos  = (12, 1) # position of stop button
 
@@ -69,9 +78,12 @@ class Recorder:
             font=("Consolas")) 
 
     def show_curr_val(self):
+        """ Get current value of audio checkbutton. """
         print(self.audio_box.get())
 
     def start_recording(self):
+        """ Start audio and video recording parallely using threads
+            depending upon if audiobox is checked or not. """
         self.status.config(text="Started Recording",
             fg="green2", 
             bg="black",
@@ -86,6 +98,7 @@ class Recorder:
         video_recording.start() 
  
     def send_stop_signal(self):
+        """ Send stop signal to audio and video recording processes. """
         t = threading.Thread(target=self.worker.give_stop_signal, args=(self.audio_box.get(),))
         t.start()
         self.status.config(text="Recording stopped and saved", 
@@ -98,11 +111,12 @@ class Recorder:
             merge = threading.Thread(target=self.worker.merge_audio_and_video)
             merge.start()
         
-    def end(self):
+    def start(self):
+        """ Start the application. """
         self.app.start()
 
 
 if __name__ == "__main__":
     recorder = Recorder()
     recorder.fill_layout()
-    recorder.end()
+    recorder.start()
