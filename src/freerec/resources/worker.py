@@ -1,8 +1,9 @@
 import time
+import sys
 import os
 import pyautogui
 import cv2
-import ffmpeg
+import subprocess
 import numpy as np
 from freerec.common import config
 from freerec.common import util
@@ -23,9 +24,9 @@ class Worker():
             self.r.toggle_stop = True
 
     def record_video(self): 
-        basename = config.basename
+        basename = os.path.join(config.output_path, config.basename)
         format_  = config.video_format
-        self.filenames['video'] = util.mod_fname(basename, format_) 
+        self.filenames['video'] = util.mod_fname(basename, format_)
 
         local_writer = cv2.VideoWriter(
             filename = self.filenames['video'],
@@ -48,7 +49,7 @@ class Worker():
 
     def record_audio(self):
         """ Records audio saves saves into file. """
-        basename = config.basename
+        basename = os.path.join(config.output_path, config.basename)
         format_  = config.audio_format
        
         with sr.Microphone() as source:
@@ -57,33 +58,35 @@ class Worker():
         self.filenames['audio'] = util.mod_fname(basename, format_) 
         with open(self.filenames['audio'], "wb") as f:
             f.write(audio.get_wav_data())
-        print(self.filenames)
         return
 
     def merge_audio_and_video(self):
         """ Merges audio and video files into one and 
             then deletes the individual audio and video file. """
-        print("entered")
         # If audio file was not recorded then there
         # is no need to merge 
         if self.filenames['audio'] == None:
-            print("none phase")
             pass 
         else:
-            video_file = ffmpeg.input(self.filenames['video'])
-            audio_file = ffmpeg.input(self.filenames['audio'])
-            print("entered now") 
-            temp = self.filenames['video'].split(".")
-            out_path = "F" + temp[0] + temp[1] 
-            print(out_path)
-            out = ffmpeg.output(
-                video_file, audio_file, 
-                out_path, vcodec='copy', 
-                acodec='aac', strict='experimental'
-                )
-            out.run(capture_stderr=True)
-            # Remove the intermediate audio file
-            os.remove(audio_file)
-        
+            seperator = "/" # unix path seperator
+            if sys.platform == 'win32':
+                seperator = "\\"  # windows path seperator
 
+            # Merge audio and video file using ffmpeg
+            tool_path = os.path.join("resources", "ffmpeg")
+            output_base = "F"+self.filenames['video'].split(seperator)[1]
+            output_path = os.path.join(config.output_path, output_base)
 
+            process = subprocess.run([tool_path, "-i", 
+                self.filenames['video'], "-i",
+                self.filenames['audio'],
+                '-acodec','aac',
+                '-vcodec','copy',
+                '-loglevel','panic',
+                '-strict','experimental',
+                '-y', output_path]) 
+            # Remove the individual files
+            os.remove(self.filenames['video'])
+            os.remove(self.filenames['audio'])
+            
+                        
