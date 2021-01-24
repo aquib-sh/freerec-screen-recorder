@@ -5,8 +5,7 @@ The purpose of this tool is to provide an open source alternative to the proprie
 Make sure you have Python 3.8.6 (should work on higher versions but not tested)
 
 ## Installation
-Step 1: pip install -r requirements.txt
-Step 2: pipwin install pyaudio
+Step 1: pip install -r requirements.txt  Step 2: pipwin install pyaudio
 
 ## Usage
 python FreeRec.py
